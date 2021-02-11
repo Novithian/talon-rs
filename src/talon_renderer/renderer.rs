@@ -88,6 +88,7 @@ impl Renderer {
             });
 
             render_pass.set_pipeline(&state_desc.render_pipeline);
+            render_pass.set_bind_group(0, &state_desc.diffuse_bind_group, &[]);
             render_pass.set_vertex_buffer(0, state_desc.vertex_buffer.slice(..));
             render_pass.set_index_buffer(state_desc.index_buffer.slice(..), wgpu::IndexFormat::Uint16);
             render_pass.draw_indexed(0..state_desc.num_indicies, 0, 0..1);

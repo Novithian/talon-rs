@@ -11,7 +11,6 @@ use std::any::Any;
 use crate::{
     core::application::Application, 
     core::module::Module, 
-    //core::application_event::ApplicationEvent,
     core::application_events::*,
     renderer::state_descriptor::StateDescriptor,
     renderer::renderer::Renderer,
@@ -19,7 +18,6 @@ use crate::{
 
 pub struct Window {
     title: String,
-    //pub window: Option<winit::window::Window>,
 }
 
 impl Module for Window {
@@ -40,7 +38,6 @@ impl Default for Window {
     fn default() -> Self {
         Window {
             title: String::from("Talon-rs Application"),
-     //       window: None,
         }
     }
 }
@@ -49,9 +46,6 @@ impl Window {
     pub fn get_title(&self) -> &str {
         self.title.as_str()
     }
-    /*fn window_id(&self) -> &winit::window::WindowId {
-        &self.window.unwrap().id()
-    }*/
 }
 
 pub fn run(app: Application) {
@@ -59,8 +53,6 @@ pub fn run(app: Application) {
 }
 
 pub fn winit_run(mut app: Application, event_loop: EventLoop<()>) {
-    //let window = app.add_module(//app.get_module::<Window>().unwrap();
-    //app.add_module(Window::default());
     let window =  WindowBuilder::new().build(&event_loop).unwrap();
     let actual_wid = window.id();
     {

@@ -3,31 +3,34 @@ use winit::window::Window;
 use wgpu::util::DeviceExt;
 
 use crate::renderer::vertex_buffer_descriptor::Vertex;
+use crate::renderer::texture::Texture;
 
 const VERTICES: &[Vertex] = &[
+    // Top left
     Vertex {
-        position: [-0.0868241, 0.49240386, 0.0],
-        color: [0.5, 0.0, 0.5],
-    }, // A
+        position: [-0.5, 0.5, 0.0],
+        tex_coords: [0.0, 0.0],
+    },
+    // Top Right
     Vertex {
-        position: [-0.49513406, 0.06958647, 0.0],
-        color: [0.5, 0.0, 0.5],
-    }, // B
+        position: [0.5, 0.5, 0.0],
+        tex_coords: [1.0, 0.0],
+    },
+    // Bottom Right
     Vertex {
-        position: [-0.21918549, -0.44939706, 0.0],
-        color: [0.5, 0.0, 0.5],
-    }, // C
+        position: [0.5, -0.5, 0.0],
+        tex_coords: [1.0, 1.0],
+    },
+    
+    // Bottom Left
     Vertex {
-        position: [0.35966998, -0.3473291, 0.0],
-        color: [0.5, 0.0, 0.5],
-    }, // D
-    Vertex {
-        position: [0.44147372, 0.2347359, 0.0],
-        color: [0.5, 0.0, 0.5],
-    }, // E
+        position: [-0.5, -0.5, 0.0],
+        tex_coords: [0.0, 1.0],
+    },
+     
 ];
 
-const INDICES: &[u16] = &[0, 1, 4, 1, 2, 4, 2, 3, 4];
+const INDICES: &[u16] = &[0, 1, 2, 2, 3, 0];
 
 // -------------------------------------------------------
 //              - State Descriptor -
@@ -45,6 +48,8 @@ pub struct StateDescriptor {
     pub vertex_buffer: wgpu::Buffer,
     pub index_buffer: wgpu::Buffer,
     pub num_indicies: u32,
+    diffuse_texture: Texture,
+    pub diffuse_bind_group: wgpu::BindGroup,
 }
 
 impl StateDescriptor {
@@ -85,6 +90,48 @@ impl StateDescriptor {
 
         let swap_chain = device.create_swap_chain(&surface, &swap_chain_descriptor);
 
+        let diffuse_bytes = include_bytes!("../../assets/s_mob_01_idle.png");
+        let diffuse_texture = 
+            Texture::from_bytes(&device, &queue, diffuse_bytes, "mob sprite").unwrap();
+
+        let texture_bind_group_layout = device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
+            entries: &[
+                wgpu::BindGroupLayoutEntry {
+                    binding: 0,
+                    visibility: wgpu::ShaderStage::FRAGMENT,
+                    ty: wgpu::BindingType::Texture {
+                        multisampled: false,
+                        view_dimension: wgpu::TextureViewDimension::D2,
+                        //sample_type: wgpu::TextureSampleType::Uint,
+                        sample_type: wgpu::TextureSampleType::Float { filterable: false },
+                    },
+                    count: None,
+                },
+                wgpu::BindGroupLayoutEntry {
+                    binding: 1,
+                    visibility: wgpu::ShaderStage::FRAGMENT,
+                    ty: wgpu::BindingType::Sampler { comparison: false, filtering: false },
+                    count: None,
+                },
+            ],
+            label: Some("Texture Bind Group Layout"),
+        });
+
+        let diffuse_bind_group = device.create_bind_group(&wgpu::BindGroupDescriptor {
+            layout: &texture_bind_group_layout,
+            entries: &[
+                wgpu::BindGroupEntry {
+                    binding: 0,
+                    resource: wgpu::BindingResource::TextureView(&diffuse_texture.view),
+                },
+                wgpu::BindGroupEntry {
+                    binding: 1,
+                    resource: wgpu::BindingResource::Sampler(&diffuse_texture.sampler),
+                },
+            ],
+            label: Some("Diffuse Bind Group"),
+        });
+
         let clear_color = wgpu::Color::BLACK;
 
         let vs_module = device.create_shader_module(&wgpu::include_spirv!("shader.vert.spv"));
@@ -93,7 +140,7 @@ impl StateDescriptor {
         let render_pipline_layout =
             device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
                 label: Some("Render Pipeline Layout"),
-                bind_group_layouts: &[],
+                bind_group_layouts: &[&texture_bind_group_layout],
                 push_constant_ranges: &[],
             });
 
@@ -124,7 +171,7 @@ impl StateDescriptor {
             primitive: wgpu::PrimitiveState {
                 topology: wgpu::PrimitiveTopology::TriangleList,
                 strip_index_format: Some(wgpu::IndexFormat::Uint16),
-                front_face: wgpu::FrontFace::Ccw,
+                front_face: wgpu::FrontFace::Cw,
                 cull_mode: wgpu::CullMode::Back,
                 polygon_mode: wgpu::PolygonMode::Fill,
             },
@@ -156,6 +203,8 @@ impl StateDescriptor {
             vertex_buffer,
             index_buffer,
             num_indicies,
+            diffuse_texture,
+            diffuse_bind_group
         }
     }
 
