@@ -1,0 +1,20 @@
+		[ 02-09-21]
+-----------------------------------
+[ ] - Window
+	[x] - Dependencies: Application, Renderer, Core
+	[o] - Move the run to script scope 
+		[x] - Create a winit_run method that takes an ApplicationBuilder and an EventLoop
+		[ ] - Call winit_run from run passing the appbuilder and a new event loop
+[x] - Application
+	[x] - Dependencies: Core
+	[x] - Switch the Application over from a trait to just a struct
+		[x] - Create a loop_function property stored as a Box<dyn Fn(Application)>
+		[x] - Create a build method
+		[x] - Create a run method that calls the loop_function
+[ ] - ApplicationEvent
+	enum ApplicationEvent(
+
+	
+		
+	
+	events_map = 
