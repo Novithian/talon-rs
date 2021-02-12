@@ -1,7 +1,17 @@
-		[ 02-09-21]
+		[02-11-21]
 -----------------------------------
-[ ] - Textures
-	[ ] - Textured Quad
+[x] - Textures
+	[o] - Textured Quad
+[x] - Uniform Buffers
+[x] - Camera
+[ ] - Basic Camera Controls
+[ ] - Input Handler
+
+
+		[02-10-21]
+-----------------------------------
+[o] - Textures
+	[o] - Textured Quad
 [x] - Window
 	[x] - Dependencies: Application, Renderer, Core
 	[o] - Move the run to script scope 

@@ -1,13 +1,6 @@
-use std::{
-    any::TypeId, 
-    collections::HashMap
-};
+use std::{any::TypeId, collections::HashMap};
 
-use crate::core::{
-    module::Module,
-    application_event::ApplicationEvent,
-    application_events::*,
-};
+use crate::core::{application_event::ApplicationEvent, application_events::*, module::Module};
 
 use crate::renderer::renderer::Renderer;
 
@@ -31,7 +24,6 @@ impl Default for Application {
 
 impl Application {
     pub fn run(mut self) {
-
         let replaced_loop = std::mem::replace(&mut self.loop_function, Box::new(no_loop));
         (replaced_loop)(self);
     }
@@ -89,31 +81,35 @@ impl Application {
         )
     }
 
-    pub fn send_event(&mut self, event_id: ApplicationEventID, mut app_event: Box<dyn ApplicationEvent>) {
+    pub fn send_event(
+        &mut self,
+        event_id: ApplicationEventID,
+        mut app_event: Box<dyn ApplicationEvent>,
+    ) {
         match event_id {
-            ApplicationEventID::WindowResize => { 
+            ApplicationEventID::WindowResize => {
                 let resize_event = app_event
                     .as_any_mut()
                     .downcast_mut::<WindowResize>()
                     .expect("[Application]: Application Event downcast failed!");
-                self.get_module_mut::<Renderer>().unwrap().resize(resize_event.width, resize_event.height);
-            },
-            ApplicationEventID::RendererSetup => { 
-                let setup_event =  app_event
+                self.get_module_mut::<Renderer>()
+                    .unwrap()
+                    .resize(resize_event.width, resize_event.height);
+            }
+            ApplicationEventID::RendererSetup => {
+                let setup_event = app_event
                     .as_any_mut()
                     .downcast_mut::<RendererSetup>()
                     .expect("[Application]: Application Event downcast failed!");
 
-                self.get_module_mut::<Renderer>().unwrap().set_state( std::mem::take(setup_event).state_descriptor.unwrap());
-            },
-            ApplicationEventID::Render => { 
-                ()
-            },
+                self.get_module_mut::<Renderer>()
+                    .unwrap()
+                    .set_state(std::mem::take(setup_event).state_descriptor.unwrap());
+            }
+            ApplicationEventID::Render => (),
             //_ => (),
         }
-        
     }
-    
 }
 
 fn no_loop(mut app: Application) {

@@ -1,5 +1,5 @@
-use image::GenericImageView;
 use anyhow::*;
+use image::GenericImageView;
 
 pub struct Texture {
     pub texture: wgpu::Texture,
@@ -33,6 +33,9 @@ impl Texture {
             depth: 1,
         };
 
+        println!("Texture: {}", label.unwrap());
+        println!("Size: {:?}", size);
+
         let texture = device.create_texture(&wgpu::TextureDescriptor {
             label,
             size,
@@ -63,11 +66,10 @@ impl Texture {
             address_mode_u: wgpu::AddressMode::ClampToEdge,
             address_mode_v: wgpu::AddressMode::ClampToEdge,
             address_mode_w: wgpu::AddressMode::ClampToEdge,
-            mag_filter: wgpu::FilterMode::Linear,
+            mag_filter: wgpu::FilterMode::Nearest,
             min_filter: wgpu::FilterMode::Nearest,
             mipmap_filter: wgpu::FilterMode::Nearest,
             ..Default::default()
-
         });
 
         Ok(Self {
@@ -75,8 +77,5 @@ impl Texture {
             view,
             sampler,
         })
-
     }
 }
-
-

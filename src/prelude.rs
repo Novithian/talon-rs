@@ -12,3 +12,5 @@ pub use crate::renderer::*;
 
 //#[path = "talon_window/talon_window.rs"]
 pub use crate::window::*;
+
+pub use crate::input::*;

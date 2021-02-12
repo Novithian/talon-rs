@@ -8,3 +8,6 @@ pub mod renderer;
 
 #[path = "talon_window/talon_window.rs"]
 pub mod window;
+
+#[path = "talon_input/talon_input.rs"]
+pub mod input;

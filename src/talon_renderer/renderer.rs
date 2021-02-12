@@ -1,8 +1,9 @@
 use std::any::Any;
 
+use winit::event::*;
+
 use crate::{
-    core::application::Application, 
-    core::module::Module,
+    core::application::Application, core::module::Module,
     renderer::state_descriptor::StateDescriptor,
 };
 
@@ -52,23 +53,30 @@ impl Renderer {
                 if desired_height == 0 && desired_width == 0 {
                     width = sd.size.width;
                     height = sd.size.height;
-                }else{
+                } else {
                     width = desired_width;
                     height = desired_height;
                 }
-                sd.resize(
-                    winit::dpi::PhysicalSize::<u32>::new(width, height)
-                )
-            },
+                sd.resize(winit::dpi::PhysicalSize::<u32>::new(width, height))
+            }
             None => (),
         }
+    }
+
+    pub fn input(&mut self, event: &WindowEvent) -> bool {
+        self.state_descriptor.as_mut().unwrap().camera_controller.process(event)
+    }
+    
+
+    pub fn update(&mut self) {
+        self.state_descriptor.as_mut().unwrap().update();
     }
 
     pub fn render(&mut self) -> Result<(), wgpu::SwapChainError> {
         let state_desc = self.state_descriptor.as_mut().unwrap();
         let frame = state_desc.swap_chain.get_current_frame()?.output;
-        let mut encoder = 
-           state_desc 
+        let mut encoder =
+            state_desc
                 .device
                 .create_command_encoder(&wgpu::CommandEncoderDescriptor {
                     label: Some("Render Encoder"),
@@ -89,8 +97,10 @@ impl Renderer {
 
             render_pass.set_pipeline(&state_desc.render_pipeline);
             render_pass.set_bind_group(0, &state_desc.diffuse_bind_group, &[]);
+            render_pass.set_bind_group(1, &state_desc.uniform_bind_group, &[]);
             render_pass.set_vertex_buffer(0, state_desc.vertex_buffer.slice(..));
-            render_pass.set_index_buffer(state_desc.index_buffer.slice(..), wgpu::IndexFormat::Uint16);
+            render_pass
+                .set_index_buffer(state_desc.index_buffer.slice(..), wgpu::IndexFormat::Uint16);
             render_pass.draw_indexed(0..state_desc.num_indicies, 0, 0..1);
         }
 

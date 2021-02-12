@@ -6,7 +6,7 @@ use std::any::Any;
 pub enum ApplicationEventID {
     WindowResize,
     RendererSetup,
-    Render
+    Render,
 }
 
 // -----------------------------------------------
@@ -25,7 +25,7 @@ impl ApplicationEvent for WindowResize {
         self
     }
     fn get_id(&self) -> Option<ApplicationEventID> {
-        Some (ApplicationEventID::WindowResize )
+        Some(ApplicationEventID::WindowResize)
     }
 }
 // -----------------------------------------------
@@ -44,7 +44,7 @@ impl ApplicationEvent for RendererSetup {
         self
     }
     fn get_id(&self) -> Option<ApplicationEventID> {
-        Some (ApplicationEventID::RendererSetup )
+        Some(ApplicationEventID::RendererSetup)
     }
 }
 
@@ -55,4 +55,3 @@ impl Default for RendererSetup {
         }
     }
 }
-
