@@ -1,5 +1,5 @@
 
-use talon_rs::{
+use paopu_rs::{
     core::application::*,
     window::window::*,
     renderer::renderer::*,

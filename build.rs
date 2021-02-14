@@ -40,9 +40,9 @@ impl ShaderData {
 fn main() -> Result<()> {
     // Collect all shaders recursively within /src/
     let mut shader_paths = [
-        glob("./src/talon_renderer/**/*.vert")?,
-        glob("./src/talon_renderer/**/*.frag")?,
-        glob("./src/talon_renderer/**/*.comp")?,
+        glob("./src/paopu_renderer/**/*.vert")?,
+        glob("./src/paopu_renderer/**/*.frag")?,
+        glob("./src/paopu_renderer/**/*.comp")?,
     ];
 
     // This could be parallelized

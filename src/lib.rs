@@ -1,13 +1,13 @@
 pub mod prelude;
 
-#[path = "talon_core/talon_core.rs"]
+#[path = "paopu_core/paopu_core.rs"]
 pub mod core;
 
-#[path = "talon_renderer/talon_renderer.rs"]
+#[path = "paopu_renderer/paopu_renderer.rs"]
 pub mod renderer;
 
-#[path = "talon_window/talon_window.rs"]
+#[path = "paopu_window/paopu_window.rs"]
 pub mod window;
 
-#[path = "talon_input/talon_input.rs"]
+#[path = "paopu_input/paopu_input.rs"]
 pub mod input;
