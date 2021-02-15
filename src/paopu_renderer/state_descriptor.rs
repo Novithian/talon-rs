@@ -3,10 +3,10 @@ use winit::window::Window;
 use wgpu::util::DeviceExt;
 
 use crate::renderer::{
+    camera::{Camera, CameraController},
     texture::Texture,
+    uniforms::{UniformStaging, Uniforms},
     vertex_buffer_descriptor::Vertex,
-    camera::{ Camera, CameraController },
-    uniforms::{ Uniforms, UniformStaging },
 };
 
 const VERTICES: &[Vertex] = &[
@@ -37,7 +37,7 @@ const INDICES: &[u16] = &[0, 1, 2, 2, 3, 0];
 // -------------------------------------------------------
 //              - State Descriptor -
 // -------------------------------------------------------
-              
+
 pub struct StateDescriptor {
     surface: wgpu::Surface,
     pub device: wgpu::Device,
@@ -163,49 +163,44 @@ impl StateDescriptor {
         uniform_staging.update_uniforms(&mut uniforms);
         //uniforms.update_view_projection(&camera);
 
-        let uniform_buffer = device.create_buffer_init(
-            &wgpu::util::BufferInitDescriptor {
-                label: Some("Uniform Buffer"),
-                contents: bytemuck::cast_slice(&[uniforms]),
-                usage: wgpu::BufferUsage::UNIFORM | wgpu::BufferUsage::COPY_DST,
-            }
-        );
+        let uniform_buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
+            label: Some("Uniform Buffer"),
+            contents: bytemuck::cast_slice(&[uniforms]),
+            usage: wgpu::BufferUsage::UNIFORM | wgpu::BufferUsage::COPY_DST,
+        });
 
-        let uniform_bind_group_layout = device.create_bind_group_layout( &wgpu::BindGroupLayoutDescriptor {
-            entries: &[
-                wgpu::BindGroupLayoutEntry {
+        let uniform_bind_group_layout =
+            device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
+                entries: &[wgpu::BindGroupLayoutEntry {
                     binding: 0,
                     visibility: wgpu::ShaderStage::VERTEX,
                     ty: wgpu::BindingType::Buffer {
                         ty: wgpu::BufferBindingType::Uniform,
-                        // Indicates wehterh this buffer will change size or not. 
+                        // Indicates wehterh this buffer will change size or not.
                         // Useful for storing an array of things in out uniform.
-                        has_dynamic_offset: false, 
+                        has_dynamic_offset: false,
                         min_binding_size: None,
                     },
                     count: None,
-                }
-            ],
-            label: Some("Uniform Bind Group Layout"),
-        });
+                }],
+                label: Some("Uniform Bind Group Layout"),
+            });
 
-        let uniform_bind_group = device.create_bind_group( &wgpu::BindGroupDescriptor {
+        let uniform_bind_group = device.create_bind_group(&wgpu::BindGroupDescriptor {
             layout: &uniform_bind_group_layout,
-            entries: &[
-                wgpu::BindGroupEntry {
-                    binding: 0,
-                    resource: wgpu::BindingResource::Buffer {
-                        buffer: &uniform_buffer,
-                        // Base offset of the buffer. For bindings with dynamic == true, this
-                        // offset will be added to the dynamic offset provided in
-                        // [RenderPass::set_bind_group].
-                        // The offset has to be aling to [BIND_BUFFER_ALIGNMENT].
-                        offset: 0,
-                        // Size of the binding, or [None] for using the rest of the buffer.
-                        size: None,
-                    },
-                }
-            ],
+            entries: &[wgpu::BindGroupEntry {
+                binding: 0,
+                resource: wgpu::BindingResource::Buffer {
+                    buffer: &uniform_buffer,
+                    // Base offset of the buffer. For bindings with dynamic == true, this
+                    // offset will be added to the dynamic offset provided in
+                    // [RenderPass::set_bind_group].
+                    // The offset has to be aling to [BIND_BUFFER_ALIGNMENT].
+                    offset: 0,
+                    // Size of the binding, or [None] for using the rest of the buffer.
+                    size: None,
+                },
+            }],
             label: Some("Uniform Bind Group"),
         });
 
@@ -217,11 +212,7 @@ impl StateDescriptor {
         let render_pipline_layout =
             device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
                 label: Some("Render Pipeline Layout"),
-                bind_group_layouts: &[
-                    &texture_bind_group_layout,
-                    &uniform_bind_group_layout,
-
-                ],
+                bind_group_layouts: &[&texture_bind_group_layout, &uniform_bind_group_layout],
                 push_constant_ranges: &[],
             });
 
@@ -295,7 +286,8 @@ impl StateDescriptor {
     }
 
     pub fn update(&mut self) {
-        self.camera_controller.update_camera(&mut self.uniform_staging.camera);
+        self.camera_controller
+            .update_camera(&mut self.uniform_staging.camera);
         //self.uniform_staging.model_rotation += cgmath::Deg(2.0);
         self.uniform_staging.update_uniforms(&mut self.uniforms);
         self.queue.write_buffer(
@@ -312,10 +304,8 @@ impl StateDescriptor {
         self.swap_chain = self
             .device
             .create_swap_chain(&self.surface, &self.swap_chain_descriptor);
-        self.uniform_staging
-            .set_camera_aspect(
-                self.swap_chain_descriptor.width as f32
-                / self.swap_chain_descriptor.height as f32
-            );
+        self.uniform_staging.set_camera_aspect(
+            self.swap_chain_descriptor.width as f32 / self.swap_chain_descriptor.height as f32,
+        );
     }
 }

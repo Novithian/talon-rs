@@ -34,7 +34,7 @@ impl Module for Window {
 impl Default for Window {
     fn default() -> Self {
         Window {
-            title: String::from("Talon-rs Application"),
+            title: String::from("Paopu-rs Application"),
         }
     }
 }
@@ -110,21 +110,8 @@ pub fn winit_run(mut app: Application, event_loop: EventLoop<()>) {
             }
             Event::RedrawRequested(_) => {
                 // Redraw the application
-                renderer.update();
-                match renderer.render() {
-                    Ok(_) => {}
-                    // Recreate the swap_chain if lost
-                    Err(wgpu::SwapChainError::Lost) => app.send_event(
-                        ApplicationEventID::WindowResize,
-                        Box::new(WindowResize {
-                            width: 0,
-                            height: 0,
-                        }),
-                    ),
-                    // The system is out of memory, just quit.
-                    Err(wgpu::SwapChainError::OutOfMemory) => *control_flow = ControlFlow::Exit,
-                    // All other errors(Outdates, Timeout) should be resolved by the next frame.
-                    Err(e) => eprintln!("{:?}", e),
+                if renderer.update() {
+                    *control_flow = ControlFlow::Exit;
                 }
             }
             _ => (),

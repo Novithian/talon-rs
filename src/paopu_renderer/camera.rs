@@ -1,5 +1,5 @@
- use winit::event::*;
- use cgmath::InnerSpace;
+use cgmath::InnerSpace;
+use winit::event::*;
 // -------------------------------------------------------------------------
 //              - Camera -
 // -------------------------------------------------------------------------
@@ -21,7 +21,6 @@ pub struct Camera {
     pub zfar: f32,
 }
 
-
 impl Camera {
     pub fn build_view_projection_matrix(&self) -> cgmath::Matrix4<f32> {
         // The VIEW matrix moves the world to be at the position and rotation of the camera.
@@ -29,9 +28,10 @@ impl Camera {
         let view = cgmath::Matrix4::look_at(self.eye, self.target, self.up);
         // The PROJECTION matrix wraps the scene to give the effect of depth. Without this,
         // objects up close would be the same size as objects far away.
-        let projection = cgmath::perspective(cgmath::Deg(self.fovy), self.aspect, self.znear, self.zfar);
+        let projection =
+            cgmath::perspective(cgmath::Deg(self.fovy), self.aspect, self.znear, self.zfar);
         // NOTE (Devon): The coordinate system in wgpu is based on DirectX, and Metal's corrdinate
-        // systems. That menas that normalized device coordinates, the x axis and y axis are in 
+        // systems. That menas that normalized device coordinates, the x axis and y axis are in
         // the range of -1.0 to +1.0, and the z axis is 0.0 to +1.0. The [cgmath] crate is based
         // on OpenGL's coordinate system.
         return projection * view;
@@ -49,7 +49,7 @@ pub struct CameraController {
 }
 
 impl CameraController {
-    pub fn new(speed: f32) -> Self{
+    pub fn new(speed: f32) -> Self {
         Self {
             speed,
             is_up_pressed: false,
@@ -64,9 +64,9 @@ impl CameraController {
     pub fn process(&mut self, event: &WindowEvent) -> bool {
         match event {
             WindowEvent::KeyboardInput {
-                input: 
+                input:
                     KeyboardInput {
-                        state, 
+                        state,
                         virtual_keycode: Some(keycode),
                         ..
                     },
@@ -77,32 +77,31 @@ impl CameraController {
                     VirtualKeyCode::W | VirtualKeyCode::Up => {
                         self.is_up_pressed = is_pressed;
                         true
-                    },
+                    }
                     VirtualKeyCode::S | VirtualKeyCode::Down => {
                         self.is_down_pressed = is_pressed;
                         true
-                    },
+                    }
                     VirtualKeyCode::A | VirtualKeyCode::Left => {
                         self.is_left_pressed = is_pressed;
                         true
-                    },
+                    }
                     VirtualKeyCode::D | VirtualKeyCode::Right => {
                         self.is_right_pressed = is_pressed;
                         true
-                    },
+                    }
                     VirtualKeyCode::E => {
                         self.is_forward_pressed = is_pressed;
                         true
-                    },
+                    }
                     VirtualKeyCode::Q => {
                         self.is_backward_pressed = is_pressed;
                         true
-                    },
+                    }
 
                     _ => false,
-
                 }
-            },
+            }
             _ => false,
         }
     }
@@ -124,7 +123,7 @@ impl CameraController {
 
         let forward = camera.target - camera.eye;
         let forward_mag = forward.magnitude();
-        
+
         if self.is_right_pressed {
             // Rescale the distance between the target and eye so
             // that it doesn't change. The eye therefore still
@@ -135,7 +134,5 @@ impl CameraController {
         if self.is_left_pressed {
             camera.eye = camera.target - (forward - right * self.speed).normalize() * forward_mag;
         }
-
-
     }
 }

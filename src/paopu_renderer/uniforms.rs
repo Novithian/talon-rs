@@ -1,4 +1,3 @@
-
 use cgmath::SquareMatrix;
 
 use crate::renderer::camera::*;
@@ -31,11 +30,10 @@ impl UniformStaging {
         }
     }
     pub fn update_uniforms(&self, uniforms: &mut Uniforms) {
-        uniforms.model_view_projection = (
-            OPENGL_TO_WGPU_MATRIX
+        uniforms.model_view_projection = (OPENGL_TO_WGPU_MATRIX
             * self.camera.build_view_projection_matrix()
-            * cgmath::Matrix4::from_angle_z(self.model_rotation)
-        ).into();
+            * cgmath::Matrix4::from_angle_z(self.model_rotation))
+        .into();
     }
 
     pub fn set_camera_aspect(&mut self, aspect: f32) {

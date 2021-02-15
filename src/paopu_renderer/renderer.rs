@@ -64,16 +64,30 @@ impl Renderer {
     }
 
     pub fn input(&mut self, event: &WindowEvent) -> bool {
-        self.state_descriptor.as_mut().unwrap().camera_controller.process(event)
+        self.state_descriptor
+            .as_mut()
+            .unwrap()
+            .camera_controller
+            .process(event)
     }
-    
 
-    pub fn update(&mut self) {
-        self.state_descriptor.as_mut().unwrap().update();
+    pub fn update(&mut self) -> bool {
+        match self.render() {
+            Ok(_) => {}
+            // Recreate the swap_chain if lost
+            Err(wgpu::SwapChainError::Lost) => self.resize(0, 0),
+            // The system is out of memory, just quit.
+            Err(wgpu::SwapChainError::OutOfMemory) => return true,
+            // All other errors(Outdates, Timeout) should be resolved by the next frame.
+            Err(e) => eprintln!("{:?}", e),
+        }
+
+        return false;
     }
 
     pub fn render(&mut self) -> Result<(), wgpu::SwapChainError> {
         let state_desc = self.state_descriptor.as_mut().unwrap();
+        state_desc.update();
         let frame = state_desc.swap_chain.get_current_frame()?.output;
         let mut encoder =
             state_desc

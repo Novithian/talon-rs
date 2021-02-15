@@ -1,12 +1,8 @@
 //use winit::event::*;
+use crate::core::{application::Application, module::Module};
 use std::any::Any;
-use crate::core::{
-    module::Module,
-    application::Application,
-};
 
-
-pub struct Input{}
+pub struct Input {}
 impl Module for Input {
     fn as_any(&self) -> &dyn Any {
         self
@@ -25,7 +21,7 @@ impl Module for Input {
 }
 
 /// [`TKeyCode`] is a wrapper class to remove the specific
-/// window event handling dependecies (such as [winit]) in 
+/// window event handling dependecies (such as [winit]) in
 /// case of dependency migration at a later date. Therefore
 /// any Input handling in applications that use [Talon] will
 /// not break in the event of a migration.
@@ -33,7 +29,7 @@ impl Module for Input {
 #[derive(Copy, Clone)]
 pub enum TKeyCode {
     // Numerical keys
-    TKey0, 
+    TKey0,
     TKey1,
     TKey2,
     TKey3,
@@ -70,7 +66,7 @@ pub enum TKeyCode {
     TKeyX,
     TKeyY,
     TKeyZ,
-    // 
+    //
     TKeyUp,
     TKeyDown,
     TKeyLeft,
@@ -88,9 +84,6 @@ pub enum TKeyCode {
     TKeyRAlt,
 }
 
-
-
 pub fn is_key_pressed(_key: TKeyCode) -> bool {
     false
 }
-
