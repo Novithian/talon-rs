@@ -1,7 +1,5 @@
 use std::any::Any;
 
-use winit::event::*;
-
 use crate::{
     core::application::Application, core::module::Module,
     renderer::state_descriptor::StateDescriptor,
@@ -51,29 +49,40 @@ impl Renderer {
                 let width;
                 let height;
                 if desired_height == 0 && desired_width == 0 {
-                    width = sd.size.width;
-                    height = sd.size.height;
+                    width = sd.width;
+                    height = sd.height;
                 } else {
                     width = desired_width;
                     height = desired_height;
                 }
-                sd.resize(winit::dpi::PhysicalSize::<u32>::new(width, height))
+                sd.resize(width, height)
             }
             None => (),
         }
     }
 
-    pub fn input(&mut self, event: &WindowEvent) -> bool {
-        self.state_descriptor.as_mut().unwrap().camera_controller.process(event)
-    }
-    
+    pub fn update(&mut self) -> bool {
 
-    pub fn update(&mut self) {
-        self.state_descriptor.as_mut().unwrap().update();
+        match self.render() {
+            Ok(_) => (),
+            // Recreate the swap chain if lost
+            Err(wgpu::SwapChainError::Lost) => {
+                self.resize(0, 0);
+            },
+            // The system is out of memory, just quit.
+            Err(wgpu::SwapChainError::OutOfMemory) => return true,
+            // All other errors(Outdates, Timeout) should be resolved by the next frame.
+            Err(e) => eprintln!("{:?}", e),
+        }
+
+        return false
+
     }
 
-    pub fn render(&mut self) -> Result<(), wgpu::SwapChainError> {
+    fn render(&mut self) -> Result<(), wgpu::SwapChainError> {
         let state_desc = self.state_descriptor.as_mut().unwrap();
+        state_desc.update();
+
         let frame = state_desc.swap_chain.get_current_frame()?.output;
         let mut encoder =
             state_desc

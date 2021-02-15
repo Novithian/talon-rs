@@ -1,3 +1,13 @@
+		[02-14-21]
+-----------------------------------
+[ ] - Work on GLFW branch
+	[x] - state_descriptor.rs: Switch out winit to glfw
+		[x] - Change the size member over to a new format 
+	[x] - renderer.rs: Winit events references
+		[x] - Change the desired_size members to the new u32 format
+	[o] - camera.rs: Winit events references
+		[ ] - Rework
+
 		[02-11-21]
 -----------------------------------
 [x] - Textures
@@ -6,7 +16,6 @@
 [x] - Camera
 [ ] - Basic Camera Controls
 [ ] - Input Handler
-
 
 		[02-10-21]
 -----------------------------------

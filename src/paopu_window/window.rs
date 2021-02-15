@@ -1,40 +1,17 @@
-/*use winit::{
-    event::*,
-    event_loop::{ControlFlow, EventLoop},
-    window::WindowBuilder,
-};*/
-
-use futures::executor::block_on;
-
-use std::any::Any;
-
-use crate::{
-    core::application::Application, core::application_events::*, core::module::Module,
-    renderer::renderer::Renderer, renderer::state_descriptor::StateDescriptor,
-};
+// ------------------------------------------------------------------------------
+//                      - Window -
+// ------------------------------------------------------------------------------
 
 pub struct Window {
     title: String,
-}
-
-impl Module for Window {
-    fn as_any(&self) -> &dyn Any {
-        self
-    }
-
-    fn as_any_mut(&mut self) -> &mut dyn Any {
-        self
-    }
-
-    fn build(&self, app: &mut Application) {
-        app.set_loop_function(run);
-    }
+    pub context: Option<glfw::Window>
 }
 
 impl Default for Window {
     fn default() -> Self {
         Window {
-            title: String::from("Talon-rs Application"),
+            title: String::from("Paopu-rs Application"),
+            context: None,
         }
     }
 }
@@ -43,12 +20,16 @@ impl Window {
     pub fn get_title(&self) -> &str {
         self.title.as_str()
     }
+    pub fn close(&mut self) {
+        let context = self.context.take().unwrap();
+        context.close();
+    }
 }
-
+/*
 pub fn run(app: Application) {
     winit_run(app, EventLoop::new());
-}
-
+}*/
+/*
 pub fn winit_run(mut app: Application, event_loop: EventLoop<()>) {
     let window = WindowBuilder::new().build(&event_loop).unwrap();
     let actual_wid = window.id();
@@ -130,4 +111,4 @@ pub fn winit_run(mut app: Application, event_loop: EventLoop<()>) {
             _ => (),
         }
     });
-}
+}*/

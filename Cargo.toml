@@ -17,8 +17,10 @@ env_logger = "0.7"
 log = "0.4"
 anyhow = "1.0"
 
-[dependencies.glfw]
-git = "https://github.com/PistonDevelopers/glfw-rs.git"
+raw-window-handle = "0.3.3"
+#[dependencies.glfw]
+#git = "https://github.com/PistonDevelopers/glfw-rs.git"
+glfw = { version = "0.41.0", features = ["vulkan"] }
 
 
 [build-dependencies]

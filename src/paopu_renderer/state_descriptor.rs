@@ -1,7 +1,5 @@
-use winit::window::Window;
-
 use wgpu::util::DeviceExt;
-
+use raw_window_handle::{RawWindowHandle, HasRawWindowHandle};
 use crate::renderer::{
     texture::Texture,
     vertex_buffer_descriptor::Vertex,
@@ -44,7 +42,8 @@ pub struct StateDescriptor {
     pub queue: wgpu::Queue,
     swap_chain_descriptor: wgpu::SwapChainDescriptor,
     pub swap_chain: wgpu::SwapChain,
-    pub size: winit::dpi::PhysicalSize<u32>,
+    pub width: u32,
+    pub height: u32,
     pub clear_color: wgpu::Color,
     pub render_pipeline: wgpu::RenderPipeline,
     pub vertex_buffer: wgpu::Buffer,
@@ -61,13 +60,16 @@ pub struct StateDescriptor {
 
 impl StateDescriptor {
     // Creating some of the wgpu types requires async
-    pub async fn new(window: &Window) -> Self {
-        let size = window.inner_size();
+    pub async fn new(window: &glfw::Window) -> Self {
+        let (window_width, window_height) = window.get_size();
+        let new_width: u32 = window_width as u32;
+        let new_height: u32 = window_height as u32;
 
         // The instance is a handle to our GPU
         // BackendBit::PRIMARY => Vulkan + Metal + DX12 + Browser WebGPU
         let instance = wgpu::Instance::new(wgpu::BackendBit::PRIMARY);
         let surface = unsafe { instance.create_surface(window) };
+        
         let adapter = instance
             .request_adapter(&wgpu::RequestAdapterOptions {
                 power_preference: wgpu::PowerPreference::HighPerformance,
@@ -90,16 +92,25 @@ impl StateDescriptor {
         let swap_chain_descriptor = wgpu::SwapChainDescriptor {
             usage: wgpu::TextureUsage::RENDER_ATTACHMENT,
             format: wgpu::TextureFormat::Bgra8UnormSrgb,
-            width: size.width,
-            height: size.height,
+            width: new_width,
+            height: new_height,
             present_mode: wgpu::PresentMode::Fifo,
         };
 
+        println!("{:?}", window);
+        println!("{:?}", adapter);
+        println!("{:?}", device);
+        println!("{:?}", surface);
+
         let swap_chain = device.create_swap_chain(&surface, &swap_chain_descriptor);
+
+        println!("Past Swap Chain");
 
         let diffuse_bytes = include_bytes!("../../assets/s_mob_01_idle.png");
         let diffuse_texture =
             Texture::from_bytes(&device, &queue, diffuse_bytes, "mob sprite").unwrap();
+
+        println!("Past Textures");
 
         let texture_bind_group_layout =
             device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
@@ -171,6 +182,7 @@ impl StateDescriptor {
             }
         );
 
+
         let uniform_bind_group_layout = device.create_bind_group_layout( &wgpu::BindGroupLayoutDescriptor {
             entries: &[
                 wgpu::BindGroupLayoutEntry {
@@ -213,6 +225,7 @@ impl StateDescriptor {
 
         let vs_module = device.create_shader_module(&wgpu::include_spirv!("shader.vert.spv"));
         let fs_module = device.create_shader_module(&wgpu::include_spirv!("shader.frag.spv"));
+        
 
         let render_pipline_layout =
             device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
@@ -272,13 +285,16 @@ impl StateDescriptor {
 
         let num_indicies = INDICES.len() as u32;
 
+        println!("HERE");
+
         Self {
             surface,
             device,
             queue,
             swap_chain_descriptor,
             swap_chain,
-            size,
+            width: new_width,
+            height: new_height,
             clear_color,
             render_pipeline,
             vertex_buffer,
@@ -296,7 +312,6 @@ impl StateDescriptor {
 
     pub fn update(&mut self) {
         self.camera_controller.update_camera(&mut self.uniform_staging.camera);
-        //self.uniform_staging.model_rotation += cgmath::Deg(2.0);
         self.uniform_staging.update_uniforms(&mut self.uniforms);
         self.queue.write_buffer(
             &self.uniform_buffer,
@@ -305,10 +320,11 @@ impl StateDescriptor {
         );
     }
 
-    pub fn resize(&mut self, new_size: winit::dpi::PhysicalSize<u32>) {
-        self.size = new_size;
-        self.swap_chain_descriptor.width = new_size.width;
-        self.swap_chain_descriptor.height = new_size.height;
+    pub fn resize(&mut self, desired_width: u32, desired_height: u32) {
+        self.width = desired_width;
+        self.height = desired_height;
+        self.swap_chain_descriptor.width = desired_width;
+        self.swap_chain_descriptor.height = desired_height;
         self.swap_chain = self
             .device
             .create_swap_chain(&self.surface, &self.swap_chain_descriptor);

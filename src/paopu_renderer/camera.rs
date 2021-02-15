@@ -1,4 +1,4 @@
- use winit::event::*;
+
  use cgmath::InnerSpace;
 // -------------------------------------------------------------------------
 //              - Camera -
@@ -60,7 +60,7 @@ impl CameraController {
             is_backward_pressed: false,
         }
     }
-
+/*
     pub fn process(&mut self, event: &WindowEvent) -> bool {
         match event {
             WindowEvent::KeyboardInput {
@@ -106,6 +106,7 @@ impl CameraController {
             _ => false,
         }
     }
+*/
 
     pub fn update_camera(&self, camera: &mut Camera) {
         let forward = camera.target - camera.eye;
