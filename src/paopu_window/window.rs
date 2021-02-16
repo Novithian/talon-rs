@@ -73,7 +73,7 @@ pub fn winit_run(mut app: Application, event_loop: EventLoop<()>) {
                 if app.requested_termination {
                     *control_flow = ControlFlow::Exit;
                 // Else check for non-window inputs
-                }else if !app.input(event) {
+                }else if !app.update_input(event) {
                     match event {
                         WindowEvent::CloseRequested => *control_flow = ControlFlow::Exit,
                         WindowEvent::Resized(physical_size) => {

@@ -3,8 +3,8 @@ use std::{any::TypeId, collections::HashMap};
 use winit::event::*;
 
 use crate::core::module::Module;
-
-use crate::renderer::{renderer::Renderer, state_descriptor::StateDescriptor};
+use crate::input::input::*;
+use crate::renderer::renderer::Renderer;
 
 // -------------------------------------------------------------------------------
 //                      - Application -
@@ -134,44 +134,10 @@ impl Application {
     }
 
     /// Handles the window input events
-    pub fn input(&mut self, event: &WindowEvent) -> bool {
-        let mut input_event = true;
-        
-        match event {
-            WindowEvent::KeyboardInput {
-                input:
-                    KeyboardInput {
-                        state, 
-                        virtual_keycode: Some(keycode),
-                        ..
-                    },
-                ..
-            } => {
-                //let is_pressed = *state == ElementState::Pressed;
-                match keycode {
-                    VirtualKeyCode::W | VirtualKeyCode::Up => {
+    pub fn update_input(&mut self, event: &WindowEvent) -> bool {
+        let input_event = INPUT.lock().unwrap().update(event);
 
-                    },
-                    VirtualKeyCode::S | VirtualKeyCode::Down => {
-
-                    },
-                    VirtualKeyCode::A | VirtualKeyCode::Left => {
-
-                    },
-                    VirtualKeyCode::D | VirtualKeyCode::Right => {
-
-                    },
-                    VirtualKeyCode::Escape => {
-                        self.requested_termination = true;
-                    },
-
-                    _ => input_event = false,
-                }
-            },
-
-            _ => input_event = false,
-            
-        }
+        self.requested_termination = INPUT.lock().unwrap().get_key_pressed(PKeyCode::Escape);
 
         input_event
     }

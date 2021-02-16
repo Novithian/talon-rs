@@ -1,4 +1,5 @@
 use cgmath::InnerSpace;
+use crate::input::input::*;
 use winit::event::*;
 // -------------------------------------------------------------------------
 //              - Camera -
@@ -62,51 +63,16 @@ impl CameraController {
     }
 
     pub fn process(&mut self, event: &WindowEvent) -> bool {
-        match event {
-            WindowEvent::KeyboardInput {
-                input:
-                    KeyboardInput {
-                        state,
-                        virtual_keycode: Some(keycode),
-                        ..
-                    },
-                ..
-            } => {
-                let is_pressed = *state == ElementState::Pressed;
-                match keycode {
-                    VirtualKeyCode::W | VirtualKeyCode::Up => {
-                        self.is_up_pressed = is_pressed;
-                        true
-                    }
-                    VirtualKeyCode::S | VirtualKeyCode::Down => {
-                        self.is_down_pressed = is_pressed;
-                        true
-                    }
-                    VirtualKeyCode::A | VirtualKeyCode::Left => {
-                        self.is_left_pressed = is_pressed;
-                        true
-                    }
-                    VirtualKeyCode::D | VirtualKeyCode::Right => {
-                        self.is_right_pressed = is_pressed;
-                        true
-                    }
-                    VirtualKeyCode::E => {
-                        self.is_forward_pressed = is_pressed;
-                        true
-                    }
-                    VirtualKeyCode::Q => {
-                        self.is_backward_pressed = is_pressed;
-                        true
-                    }
-
-                    _ => false,
-                }
-            }
-            _ => false,
-        }
+        
+        false
     }
 
     pub fn update_camera(&self, camera: &mut Camera) {
+
+        if INPUT.lock().unwrap().get_key_pressed(PKeyCode::E) {
+            println!("E is down");
+        }
+
         let forward = camera.target - camera.eye;
         let forward_norm = forward.normalize();
         let forward_mag = forward.magnitude();
