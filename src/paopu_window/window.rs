@@ -4,13 +4,12 @@ use winit::{
     window::WindowBuilder,
 };
 
-use futures::executor::block_on;
 
 use std::any::Any;
 
 use crate::{
-    core::application::Application, core::application_events::*, core::module::Module,
-    renderer::renderer::Renderer, renderer::state_descriptor::StateDescriptor,
+    core::application::Application,
+    core::module::Module,
 };
 
 pub struct Window {
@@ -29,6 +28,7 @@ impl Module for Window {
     fn build(&self, app: &mut Application) {
         app.set_loop_function(run);
     }
+
 }
 
 impl Default for Window {
@@ -55,49 +55,42 @@ pub fn winit_run(mut app: Application, event_loop: EventLoop<()>) {
     {
         window.set_title(app.get_module_mut::<Window>().unwrap().get_title());
     }
-    let state = block_on(StateDescriptor::new(&window));
-    app.send_event(
-        ApplicationEventID::RendererSetup,
-        Box::new(RendererSetup {
-            state_descriptor: Some(state),
-        }),
-    );
+
+    // Request that the State Descriptor be created
+    app.create_state( &window );
 
     event_loop.run(move |event, _, control_flow| {
         // ControlFlow::Poll continuously runs the event loop, even if the os hasn't
         // dispatched any events. This is ideal for games and similar applications.
         *control_flow = ControlFlow::Poll;
-
-        let renderer = app.get_module_mut::<Renderer>().unwrap();
-
+        
         match event {
             Event::WindowEvent {
                 ref event,
                 window_id,
             } if window_id == actual_wid => {
-                if !renderer.input(event) {
+                // Only triggered if termination is requested in another module.
+                if app.requested_termination {
+                    *control_flow = ControlFlow::Exit;
+                // Else check for non-window inputs
+                }else if !app.input(event) {
                     match event {
                         WindowEvent::CloseRequested => *control_flow = ControlFlow::Exit,
                         WindowEvent::Resized(physical_size) => {
                             // resize event
-                            app.send_event(
-                                ApplicationEventID::WindowResize,
-                                Box::new(WindowResize {
-                                    width: physical_size.width,
-                                    height: physical_size.height,
-                                }),
-                            );
-                        }
+                            app.window_resize(
+                                physical_size.width,
+                                physical_size.height,
+                            )
+                            
+                        },
                         WindowEvent::ScaleFactorChanged { new_inner_size, .. } => {
                             // resize event
-                            app.send_event(
-                                ApplicationEventID::WindowResize,
-                                Box::new(WindowResize {
-                                    width: new_inner_size.width,
-                                    height: new_inner_size.height,
-                                }),
-                            );
-                        }
+                            app.window_resize(
+                                new_inner_size.width,
+                                new_inner_size.height,
+                            )
+                        },
                         _ => (),
                     }
                 }
@@ -110,7 +103,8 @@ pub fn winit_run(mut app: Application, event_loop: EventLoop<()>) {
             }
             Event::RedrawRequested(_) => {
                 // Redraw the application
-                if renderer.update() {
+                if app.render() {
+                    // If there was a fatal error, then request a shutdown.
                     *control_flow = ControlFlow::Exit;
                 }
             }

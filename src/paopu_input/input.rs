@@ -1,8 +1,11 @@
 //use winit::event::*;
-use crate::core::{application::Application, module::Module};
+use crate::core::{
+    application::Application, module::Module,
+};
 use std::any::Any;
 
 pub struct Input {}
+
 impl Module for Input {
     fn as_any(&self) -> &dyn Any {
         self

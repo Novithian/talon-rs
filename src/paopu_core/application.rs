@@ -1,8 +1,10 @@
 use std::{any::TypeId, collections::HashMap};
 
-use crate::core::{application_event::ApplicationEvent, application_events::*, module::Module};
+use winit::event::*;
 
-use crate::renderer::renderer::Renderer;
+use crate::core::module::Module;
+
+use crate::renderer::{renderer::Renderer, state_descriptor::StateDescriptor};
 
 // -------------------------------------------------------------------------------
 //                      - Application -
@@ -11,6 +13,8 @@ use crate::renderer::renderer::Renderer;
 pub struct Application {
     modules: HashMap<TypeId, Box<dyn Module>>,
     loop_function: Box<dyn Fn(Application)>,
+
+    pub requested_termination: bool,
 }
 
 impl Default for Application {
@@ -18,15 +22,22 @@ impl Default for Application {
         Self {
             modules: HashMap::new(),
             loop_function: Box::new(no_loop),
+
+            requested_termination: false,
         }
     }
 }
 
 impl Application {
+    /// Called to start the main game loop.
+    /// Note: This takes ownership of self from the client.
+    ///          
     pub fn run(mut self) {
         let replaced_loop = std::mem::replace(&mut self.loop_function, Box::new(no_loop));
         (replaced_loop)(self);
     }
+    
+    /// Sets the main event loop
     pub fn set_loop_function(
         &mut self,
         loop_function: impl Fn(Application) + 'static,
@@ -34,11 +45,15 @@ impl Application {
         self.loop_function = Box::new(loop_function);
         self
     }
-    pub fn update(&mut self) {
-        // Update shit
-    }
 
-    // Modules
+    /// Adds a module of type `T` to the application.
+    /// Returns a mutable reference to `Self`
+    /// Note: `Application` takes ownership of `module`!
+    ///
+    /// # Arguments
+    ///
+    /// * `module` - The module that the user wishes to add 
+    /// to the application.
     pub fn add_module<T>(&mut self, module: T) -> &mut Self
     where
         T: Module,
@@ -47,12 +62,18 @@ impl Application {
         self.modules.insert(module.type_id(), Box::new(module));
         self
     }
+
+    // TODO (devon): Remove on release
     pub fn list_module(&mut self) {
         println!("[Application]: Modules Enabled:");
         for (_id, module) in self.modules.iter_mut() {
             module.print_name();
         }
     }
+
+    /// Checks to see if `Application` has a module of type `T`
+    /// and returns a mutable reference if found.
+    /// Returns `Option<&mut T>
     pub fn get_module_mut<T>(&mut self) -> Option<&mut T>
     where
         T: Module,
@@ -67,6 +88,9 @@ impl Application {
         )
     }
 
+    /// Checks to see if `Application` has a module of type `T`
+    /// and returns an immutable reference if found.
+    /// Returns `Option<&T>
     pub fn get_module<T>(&mut self) -> Option<&T>
     where
         T: Module,
@@ -81,37 +105,87 @@ impl Application {
         )
     }
 
-    pub fn send_event(
-        &mut self,
-        event_id: ApplicationEventID,
-        mut app_event: Box<dyn ApplicationEvent>,
-    ) {
-        match event_id {
-            ApplicationEventID::WindowResize => {
-                let resize_event = app_event
-                    .as_any_mut()
-                    .downcast_mut::<WindowResize>()
-                    .expect("[Application]: Application Event downcast failed!");
-                self.get_module_mut::<Renderer>()
-                    .unwrap()
-                    .resize(resize_event.width, resize_event.height);
-            }
-            ApplicationEventID::RendererSetup => {
-                let setup_event = app_event
-                    .as_any_mut()
-                    .downcast_mut::<RendererSetup>()
-                    .expect("[Application]: Application Event downcast failed!");
+    // ---------------------------------------------------------
+    //                  Events
+    // ---------------------------------------------------------
+    
+    /// Updates game logic.
+    /// Called once every frame. 
+    pub fn update(&mut self) {
+        // Update shit
+    }
+    
+    /// Renders the game entities to the window.
+    /// Returns a boolean whether there was an error that 
+    /// requires the application to shut down.
+    pub fn render(&mut self) -> bool {
+        let mut error = false;
+        if let Some(r) = self.get_module_mut::<Renderer>() {
+            error = r.update();
+        }
+        return error
+    }
 
-                self.get_module_mut::<Renderer>()
-                    .unwrap()
-                    .set_state(std::mem::take(setup_event).state_descriptor.unwrap());
-            }
-            ApplicationEventID::Render => (),
-            //_ => (),
+    /// Handles the window resize
+    pub fn window_resize(&mut self, width: u32, height: u32) {
+        if let Some(r) = self.get_module_mut::<Renderer>() {
+            r.resize(width, height);
         }
     }
+
+    /// Handles the window input events
+    pub fn input(&mut self, event: &WindowEvent) -> bool {
+        let mut input_event = true;
+        
+        match event {
+            WindowEvent::KeyboardInput {
+                input:
+                    KeyboardInput {
+                        state, 
+                        virtual_keycode: Some(keycode),
+                        ..
+                    },
+                ..
+            } => {
+                //let is_pressed = *state == ElementState::Pressed;
+                match keycode {
+                    VirtualKeyCode::W | VirtualKeyCode::Up => {
+
+                    },
+                    VirtualKeyCode::S | VirtualKeyCode::Down => {
+
+                    },
+                    VirtualKeyCode::A | VirtualKeyCode::Left => {
+
+                    },
+                    VirtualKeyCode::D | VirtualKeyCode::Right => {
+
+                    },
+                    VirtualKeyCode::Escape => {
+                        self.requested_termination = true;
+                    },
+
+                    _ => input_event = false,
+                }
+            },
+
+            _ => input_event = false,
+            
+        }
+
+        input_event
+    }
+
+    pub fn create_state(&mut self, window: &winit::window::Window ) {
+        if let Some(r) = self.get_module_mut::<Renderer>() {
+            r.create_state(window);
+        }
+    }
+
+    
 }
 
+/// This is used as a default main event loop just in case none is specified.
 fn no_loop(mut app: Application) {
     app.update();
 }

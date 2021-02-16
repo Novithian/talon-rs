@@ -1,4 +1,4 @@
 pub mod application;
-pub mod application_event;
-pub mod application_events;
+pub mod event_system;
+pub mod events;
 pub mod module;

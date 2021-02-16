@@ -1,10 +1,10 @@
 use std::any::Any;
 
 use winit::event::*;
-
+use futures::executor::block_on;
 use crate::{
-    core::application::Application, core::module::Module,
-    renderer::state_descriptor::StateDescriptor,
+    core::application::Application, 
+    core::module::Module, renderer::state_descriptor::StateDescriptor,
 };
 
 // -------------------------------------------------------------------------
@@ -14,6 +14,7 @@ use crate::{
 pub struct Renderer {
     state_descriptor: Option<StateDescriptor>,
 }
+
 
 impl Module for Renderer {
     fn as_any(&self) -> &dyn Any {
@@ -40,9 +41,14 @@ impl Default for Renderer {
     }
 }
 
+
 impl Renderer {
     pub fn set_state(&mut self, state_descriptor: StateDescriptor) {
         self.state_descriptor = Some(state_descriptor);
+    }
+
+    pub fn create_state(&mut self, window: &winit::window::Window) {
+        self.state_descriptor = Some(block_on(StateDescriptor::new(window)));
     }
 
     pub fn resize(&mut self, desired_width: u32, desired_height: u32) {
